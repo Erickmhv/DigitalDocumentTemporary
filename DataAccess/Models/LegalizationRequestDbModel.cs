@@ -19,6 +19,7 @@ namespace DataAccess.Models
         public decimal Amount { get; set; }
 
         public string DocumentPath { get; set; } = string.Empty;
+        public string Comment { get; set; } = string.Empty;
 
         public DateTime CreationDate { get; set; } = DateTime.Now;
 

@@ -103,5 +103,18 @@ namespace DataAccess.Repositories
             _context.LegalizationRequests.Update(legalizationDbModel);
             await _context.SaveChangesAsync();
         }
+
+        async Task ILegalizationRequestRepository.UpdateStatus(string comment,LegalizationStatus status, Guid legalizationId)
+        {
+            Arguments.NotEmpty(legalizationId, nameof(legalizationId));
+
+            LegalizationRequestDbModel legalizationDbModel = (await _context.LegalizationRequests.AsNoTracking().FirstOrDefaultAsync(legalization => legalization.Id == legalizationId))!;
+
+            legalizationDbModel.Status = status;
+            legalizationDbModel.Comment = comment;
+
+            _context.LegalizationRequests.Update(legalizationDbModel);
+            await _context.SaveChangesAsync();
+        }
     }
 }

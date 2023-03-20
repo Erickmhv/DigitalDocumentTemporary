@@ -92,7 +92,7 @@ namespace Core.Services
             await _legalizationRequestRepo.UpdateStatus(LegalizationStatus.Approved, legalizationDbModelOption.ValueOrFailure().Id);
         }
 
-        async Task ILegalizationRequestService.Deny(Guid legalizationId)
+        async Task ILegalizationRequestService.Deny(string comment,Guid legalizationId)
         {
             Arguments.NotEmpty(legalizationId, nameof(legalizationId));
 
@@ -101,7 +101,7 @@ namespace Core.Services
             State.IsTrue(legalizationDbModelOption.HasValue, "Esta legalización no está registrada en el sistema");
             State.IsTrue(legalizationDbModelOption.ValueOrFailure().Status == LegalizationStatus.Pending, "La solicitud debe estar pendiente para ser rechazada");
 
-            await _legalizationRequestRepo.UpdateStatus(LegalizationStatus.Deny, legalizationDbModelOption.ValueOrFailure().Id);
+            await _legalizationRequestRepo.UpdateStatus(comment,LegalizationStatus.Deny, legalizationDbModelOption.ValueOrFailure().Id);
         }
 
         async Task<DashboardData> ILegalizationRequestService.GetDashboardData()

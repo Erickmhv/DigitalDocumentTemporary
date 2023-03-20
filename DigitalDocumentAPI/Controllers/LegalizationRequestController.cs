@@ -67,11 +67,11 @@ namespace DigitalDocumentAPI.Controllers
         }
 
         [HttpPatch("deny")]
-        public async Task<IActionResult> Deny([FromQuery] Guid legalizationId)
+        public async Task<IActionResult> Deny([FromQuery] string comment, [FromQuery] Guid legalizationId)
         {
             Arguments.NotEmpty(legalizationId, nameof(legalizationId));
 
-            await _legalizationRequestService.Deny(legalizationId);
+            await _legalizationRequestService.Deny(comment,legalizationId);
 
             return Ok();
         }
