@@ -79,6 +79,19 @@ namespace DataAccess.Repositories
             return dashboardData;
         }
 
+        async Task<DashboardData> ILegalizationRequestRepository.GetByUserDashboardData(Guid id)
+        {
+            DashboardData dashboardData = new();
+
+            dashboardData.AllLegalizationAmount = await _context.LegalizationRequests.AsNoTracking().Where(legalization => legalization.UserId == id).CountAsync();
+            dashboardData.TodayApprovedLegalationsAmount = await _context.LegalizationRequests.AsNoTracking().Where(legalization => legalization.CreationDate.Date == DateTime.Now.Date && legalization.Status == LegalizationStatus.Approved && legalization.UserId == id).CountAsync();
+            dashboardData.TodayDenyLegalationsAmount = await _context.LegalizationRequests.AsNoTracking().Where(legalization => legalization.CreationDate.Date == DateTime.Now.Date && legalization.Status == LegalizationStatus.Deny && legalization.UserId == id).CountAsync();
+            dashboardData.TodayPendingLegalationsAmount = await _context.LegalizationRequests.AsNoTracking().Where(legalization => legalization.CreationDate.Date == DateTime.Now.Date && legalization.Status == LegalizationStatus.Pending && legalization.UserId == id).CountAsync();
+            dashboardData.TotalAmountReceivedToday = await _context.LegalizationRequests.AsNoTracking().Where(legalization => legalization.CreationDate.Date == DateTime.Now.Date && legalization.UserId == id).SumAsync(legalization => legalization.Amount);
+
+            return dashboardData;
+        }
+
         async Task ILegalizationRequestRepository.UpdateStatus(LegalizationStatus status, Guid legalizationId)
         {
             Arguments.NotEmpty(legalizationId, nameof(legalizationId));

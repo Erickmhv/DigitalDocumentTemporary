@@ -13,5 +13,7 @@ namespace DataAccess.Repositories.Interfaces
         Task<IEnumerable<LegalizationRequestDbModel>> GetAll(LegalizationStatus status);
         Task UpdateStatus(LegalizationStatus status, Guid legalizationId);
         Task<DashboardData> GetDashBoardData();
+
+        Task<DashboardData> GetByUserDashboardData(Guid id);
     }
 }

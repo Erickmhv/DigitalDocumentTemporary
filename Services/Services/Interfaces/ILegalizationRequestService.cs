@@ -12,6 +12,7 @@ namespace Core.Services.Interfaces
         Task Approve(Guid legalizationId);
         Task Deny(Guid legalizationId);
         Task<DashboardData> GetDashboardData();
+        Task<DashboardData> GetByUserDashboardData(Guid id);
 
     }
 }

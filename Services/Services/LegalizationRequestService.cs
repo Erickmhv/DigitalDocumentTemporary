@@ -110,5 +110,12 @@ namespace Core.Services
 
             return dashboardData;
         }
+
+        async Task<DashboardData> ILegalizationRequestService.GetByUserDashboardData(Guid userId)
+        {
+            DashboardData dashboardData = await _legalizationRequestRepo.GetByUserDashboardData(userId);
+
+            return dashboardData;
+        }
     }
 }
