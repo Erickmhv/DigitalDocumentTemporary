@@ -3,6 +3,9 @@ using Core.Models;
 using Core.Services.Interfaces;
 using DataAccess.Models;
 using DataAccess.Repositories.Interfaces;
+using GroupDocs.Watermark;
+using GroupDocs.Watermark.Options.Pdf;
+using GroupDocs.Watermark.Watermarks;
 using Optional;
 using Optional.Unsafe;
 using Shared.Enums;
@@ -21,6 +24,7 @@ namespace Core.Services
         private readonly IFileService _fileService;
         private readonly IMapper _mapper;
         private const string _documentName = "Document.pdf";
+        private const string _documentMarkedName = "DocumentMarked.pdf";
 
         public LegalizationRequestService(ILegalizationRequestRepository legalizationRequestRepository, IMapper mapper, IFileService fileService)
         {
@@ -61,6 +65,8 @@ namespace Core.Services
 
             LegalizationRequestDbModel legalizationDbModel = legalizationDbModelOption.ValueOrFailure()!;
 
+            legalizationDbModel.DocumentPath = legalizationDbModel.Status == LegalizationStatus.Paid ? legalizationDbModelOption.ValueOrFailure().DocumentPath.Replace(_documentName, _documentMarkedName) : legalizationDbModelOption.ValueOrFailure().DocumentPath;
+
             string fileBase64 = await _fileService.GetImageBase64StringAsync(legalizationDbModel.DocumentPath);
 
             LegalizationDetails details = _mapper.Map<LegalizationDetails>(legalizationDbModel);
@@ -92,7 +98,7 @@ namespace Core.Services
             await _legalizationRequestRepo.UpdateStatus(LegalizationStatus.Approved, legalizationDbModelOption.ValueOrFailure().Id);
         }
 
-        async Task ILegalizationRequestService.Deny(string comment,Guid legalizationId)
+        async Task ILegalizationRequestService.Deny(string comment, Guid legalizationId)
         {
             Arguments.NotEmpty(legalizationId, nameof(legalizationId));
 
@@ -101,7 +107,33 @@ namespace Core.Services
             State.IsTrue(legalizationDbModelOption.HasValue, "Esta legalización no está registrada en el sistema");
             State.IsTrue(legalizationDbModelOption.ValueOrFailure().Status == LegalizationStatus.Pending, "La solicitud debe estar pendiente para ser rechazada");
 
-            await _legalizationRequestRepo.UpdateStatus(comment,LegalizationStatus.Deny, legalizationDbModelOption.ValueOrFailure().Id);
+            await _legalizationRequestRepo.UpdateStatus(comment, LegalizationStatus.Deny, legalizationDbModelOption.ValueOrFailure().Id);
+        }
+
+        async Task ILegalizationRequestService.MarkAsPaid(Guid legalizationId)
+        {
+            Arguments.NotEmpty(legalizationId, nameof(legalizationId));
+
+            Option<LegalizationRequestDbModel> legalizationDbModelOption = await _legalizationRequestRepo.GetById(legalizationId);
+
+            State.IsTrue(legalizationDbModelOption.HasValue, "Esta legalización no está registrada en el sistema");
+            State.IsTrue(legalizationDbModelOption.ValueOrFailure().Status == LegalizationStatus.Approved, "La solicitud debe estar aprobada para ser marcada como pagada");
+
+            await _legalizationRequestRepo.UpdateStatus(LegalizationStatus.Paid, legalizationDbModelOption.ValueOrFailure().Id);
+
+            PdfLoadOptions loadOptions = new PdfLoadOptions();
+            using (Watermarker watermarker = new Watermarker(legalizationDbModelOption.ValueOrFailure().DocumentPath, loadOptions))
+            {
+                ImageWatermark imageWatermark = new ImageWatermark("Logo legalizacion.png")
+                {
+                    Opacity = 0.5,
+                    X = 50,
+                    Y = 200
+                };
+                watermarker.Add(imageWatermark);
+
+                watermarker.Save(legalizationDbModelOption.ValueOrFailure().DocumentPath.Replace(_documentName, _documentMarkedName));
+            }
         }
 
         async Task<DashboardData> ILegalizationRequestService.GetDashboardData()

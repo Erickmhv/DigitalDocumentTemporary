@@ -4,6 +4,7 @@ namespace Shared.Enums
     {
         Pending,
         Approved,
-        Deny
+        Deny,
+        Paid
     }
 }

@@ -11,6 +11,7 @@ namespace Core.Services.Interfaces
         Task<IEnumerable<LegalizationQuickView>> GetByUserId(Guid userId);
         Task Approve(Guid legalizationId);
         Task Deny(string comment,Guid legalizationId);
+        Task MarkAsPaid(Guid legalizationId);
         Task<DashboardData> GetDashboardData();
         Task<DashboardData> GetByUserDashboardData(Guid id);
 

@@ -76,6 +76,16 @@ namespace DigitalDocumentAPI.Controllers
             return Ok();
         }
 
+        [HttpPatch("mark-as-paid")]
+        public async Task<IActionResult> MaskAsPaid([FromQuery] Guid legalizationId)
+        {
+            Arguments.NotEmpty(legalizationId, nameof(legalizationId));
+
+            await _legalizationRequestService.MarkAsPaid(legalizationId);
+
+            return Ok();
+        }
+
         [HttpGet("get-dashboard-data")]
         public async Task<IActionResult> GetDashboardData()
         {
