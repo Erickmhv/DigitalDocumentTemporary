@@ -24,5 +24,7 @@ namespace Shared.ViewModels.Legalization
         public CareerModel Career { get; set; } = Option.None<CareerModel>().ValueOrDefault();
 
         public UserInformation User { get; set; } = Option.None<UserInformation>().ValueOrDefault();
+        public string DocumentPath { get; set; } = string.Empty;
+
     }
 }

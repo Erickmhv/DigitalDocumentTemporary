@@ -36,6 +36,7 @@ namespace DigitalDocumentAPI.Extensions
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<ILegalizationRequestService, LegalizationRequestService>();
             services.AddScoped<IFileService, FileService>();
+            services.AddScoped<ISMTPService, SMTPService>();
             services.AddScoped(typeof(IBaseDropdownService<BaseDropdown>), typeof(BaseDropDownService<BaseDropdown, BaseDropdownDbModel>));
             services.AddScoped(typeof(IBaseDropdownService<Career>), typeof(BaseDropDownService<Career, CareersDbModel>));
             services.AddScoped(typeof(IBaseDropdownService<DocumentType>), typeof(BaseDropDownService<DocumentType, DocumentTypeDbModel>));

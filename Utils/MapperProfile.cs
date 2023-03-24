@@ -1,6 +1,7 @@
 using AutoMapper;
 using Core.Models;
 using DataAccess.Models;
+using Shared.Helpers;
 using Shared.ViewModels;
 using Shared.ViewModels.Dropdowns;
 using Shared.ViewModels.Legalization;
@@ -40,6 +41,8 @@ namespace Utils
             CreateMap<LegalizationRequestDbModel, LegalizationCreation>().ReverseMap();
             CreateMap<LegalizationRequestDbModel, LegalizationQuickView>().ReverseMap();
             CreateMap<LegalizationRequestDbModel, LegalizationDetails>().ReverseMap();
+
+            CreateMap<LegalizationRequestDbModel, SMTPService>().ReverseMap();
 
             CreateMap<Role, RoleDbModel>().ReverseMap();
             CreateMap<RoleModel, Role>().ReverseMap();

@@ -6,6 +6,7 @@ using Shared.SettingsModels;
 using System.Text;
 using DigitalDocumentAPI.Extensions;
 using DigitalDocumentAPI;
+using Utils;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -24,6 +25,7 @@ var configurationBuilder = new ConfigurationBuilder()
 IConfiguration configuration = configurationBuilder.Build();
 
 builder.Services.Configure<FileServiceSettings>(configuration);
+builder.Services.Configure<SMTPServiceSettings>(configuration);
 
 builder.Services.AddDbContext<SqlServerContext>(options =>
 {
@@ -44,12 +46,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJw
   };
 });
 
-/*if (builder.Environment.IsDevelopment())
-    builder.Services.AddHostedService<TunnelService>();*/
-
 var app = builder.Build();
-
-//app.MapGet("/", () => "Hello World!");
 
 if (app.Environment.IsDevelopment())
 {

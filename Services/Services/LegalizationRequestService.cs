@@ -22,15 +22,17 @@ namespace Core.Services
     {
         private readonly ILegalizationRequestRepository _legalizationRequestRepo;
         private readonly IFileService _fileService;
+        private readonly ISMTPService _smtpService;
         private readonly IMapper _mapper;
         private const string _documentName = "Document.pdf";
         private const string _documentMarkedName = "DocumentMarked.pdf";
 
-        public LegalizationRequestService(ILegalizationRequestRepository legalizationRequestRepository, IMapper mapper, IFileService fileService)
+        public LegalizationRequestService(ILegalizationRequestRepository legalizationRequestRepository, IMapper mapper, IFileService fileService, ISMTPService smtpService)
         {
             _legalizationRequestRepo = legalizationRequestRepository;
             _mapper = mapper;
             _fileService = fileService;
+            _smtpService = smtpService;
         }
 
         async Task ILegalizationRequestService.Create(LegalizationCreation legalization)
@@ -96,6 +98,12 @@ namespace Core.Services
             State.IsTrue(legalizationDbModelOption.ValueOrFailure().Status == LegalizationStatus.Pending, "La solicitud debe estar pendiente para ser aprobada");
 
             await _legalizationRequestRepo.UpdateStatus(LegalizationStatus.Approved, legalizationDbModelOption.ValueOrFailure().Id);
+
+            LegalizationRequestDbModel legalizationDbModel = legalizationDbModelOption.ValueOrFailure()!;
+            LegalizationDetails details = _mapper.Map<LegalizationDetails>(legalizationDbModel);
+
+            await _smtpService.SendMail(details, LegalizationStatus.Approved);
+
         }
 
         async Task ILegalizationRequestService.Deny(string comment, Guid legalizationId)
@@ -108,6 +116,11 @@ namespace Core.Services
             State.IsTrue(legalizationDbModelOption.ValueOrFailure().Status == LegalizationStatus.Pending, "La solicitud debe estar pendiente para ser rechazada");
 
             await _legalizationRequestRepo.UpdateStatus(comment, LegalizationStatus.Deny, legalizationDbModelOption.ValueOrFailure().Id);
+
+            LegalizationRequestDbModel legalizationDbModel = legalizationDbModelOption.ValueOrFailure()!;
+            LegalizationDetails details = _mapper.Map<LegalizationDetails>(legalizationDbModel);
+
+            await _smtpService.SendMail(details, LegalizationStatus.Deny);
         }
 
         async Task ILegalizationRequestService.MarkAsPaid(Guid legalizationId)
@@ -134,6 +147,11 @@ namespace Core.Services
 
                 watermarker.Save(legalizationDbModelOption.ValueOrFailure().DocumentPath.Replace(_documentName, _documentMarkedName));
             }
+
+            LegalizationRequestDbModel legalizationDbModel = legalizationDbModelOption.ValueOrFailure()!;
+            LegalizationDetails details = _mapper.Map<LegalizationDetails>(legalizationDbModel);
+
+            await _smtpService.SendMail(details, LegalizationStatus.Paid);
         }
 
         async Task<DashboardData> ILegalizationRequestService.GetDashboardData()
