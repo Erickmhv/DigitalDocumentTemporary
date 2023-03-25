@@ -3,6 +3,7 @@ using DataAccess.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Optional;
 using Shared.Enums;
+using Shared.ViewModels;
 using Triplex.Validations;
 
 namespace DataAccess.Repositories

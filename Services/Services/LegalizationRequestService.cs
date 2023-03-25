@@ -10,6 +10,7 @@ using Optional;
 using Optional.Unsafe;
 using Shared.Enums;
 using Shared.Interfaces;
+using Shared.ViewModels;
 using Shared.ViewModels.Legalization;
 using Shared.ViewModels.PasswordChange;
 using Shared.ViewModels.User;
@@ -21,21 +22,23 @@ namespace Core.Services
     public class LegalizationRequestService : ILegalizationRequestService
     {
         private readonly ILegalizationRequestRepository _legalizationRequestRepo;
+        private readonly IUserService _userService;
         private readonly IFileService _fileService;
         private readonly ISMTPService _smtpService;
         private readonly IMapper _mapper;
         private const string _documentName = "Document.pdf";
         private const string _documentMarkedName = "DocumentMarked.pdf";
 
-        public LegalizationRequestService(ILegalizationRequestRepository legalizationRequestRepository, IMapper mapper, IFileService fileService, ISMTPService smtpService)
+        public LegalizationRequestService(ILegalizationRequestRepository legalizationRequestRepository,IUserService userService, IMapper mapper, IFileService fileService, ISMTPService smtpService)
         {
             _legalizationRequestRepo = legalizationRequestRepository;
+            _userService = userService;
             _mapper = mapper;
             _fileService = fileService;
             _smtpService = smtpService;
         }
 
-        async Task ILegalizationRequestService.Create(LegalizationCreation legalization)
+        async Task<Guid> ILegalizationRequestService.Create(LegalizationCreation legalization)
         {
             Arguments.NotNull(legalization, nameof(legalization));
 
@@ -46,6 +49,24 @@ namespace Core.Services
 
             LegalizationRequestDbModel legalizationDbModel = _mapper.Map<LegalizationRequestDbModel>(legalization);
             await _legalizationRequestRepo.Create(legalizationDbModel);
+
+            LegalizationDetails details = _mapper.Map<LegalizationDetails>(legalizationDbModel);
+
+            User user = await _userService.GetById(legalization.UserId);
+            UserInformation userInfo = _mapper.Map<UserInformation>(user);
+
+            details.User = userInfo;
+
+            try
+            {
+                await _smtpService.SendMail(details, LegalizationStatus.Pending);
+            }
+            catch (Exception)
+            {
+
+            }
+
+            return legalization.Id;
         }
 
         async Task<IEnumerable<LegalizationQuickView>> ILegalizationRequestService.GetAll(LegalizationStatus status)
@@ -67,7 +88,7 @@ namespace Core.Services
 
             LegalizationRequestDbModel legalizationDbModel = legalizationDbModelOption.ValueOrFailure()!;
 
-            legalizationDbModel.DocumentPath = legalizationDbModel.Status == LegalizationStatus.Paid ? legalizationDbModelOption.ValueOrFailure().DocumentPath.Replace(_documentName, _documentMarkedName) : legalizationDbModelOption.ValueOrFailure().DocumentPath;
+            legalizationDbModel.DocumentPath = legalizationDbModel.Status == LegalizationStatus.Approved ? legalizationDbModelOption.ValueOrFailure().DocumentPath.Replace(_documentName, _documentMarkedName) : legalizationDbModelOption.ValueOrFailure().DocumentPath;
 
             string fileBase64 = await _fileService.GetImageBase64StringAsync(legalizationDbModel.DocumentPath);
 
@@ -95,44 +116,9 @@ namespace Core.Services
             Option<LegalizationRequestDbModel> legalizationDbModelOption = await _legalizationRequestRepo.GetById(legalizationId);
 
             State.IsTrue(legalizationDbModelOption.HasValue, "Esta legalización no está registrada en el sistema");
-            State.IsTrue(legalizationDbModelOption.ValueOrFailure().Status == LegalizationStatus.Pending, "La solicitud debe estar pendiente para ser aprobada");
+            //State.IsTrue(legalizationDbModelOption.ValueOrFailure().Status == LegalizationStatus.Pending, "La solicitud debe estar pendiente para ser aprobada");
 
             await _legalizationRequestRepo.UpdateStatus(LegalizationStatus.Approved, legalizationDbModelOption.ValueOrFailure().Id);
-
-            LegalizationRequestDbModel legalizationDbModel = legalizationDbModelOption.ValueOrFailure()!;
-            LegalizationDetails details = _mapper.Map<LegalizationDetails>(legalizationDbModel);
-
-            await _smtpService.SendMail(details, LegalizationStatus.Approved);
-
-        }
-
-        async Task ILegalizationRequestService.Deny(string comment, Guid legalizationId)
-        {
-            Arguments.NotEmpty(legalizationId, nameof(legalizationId));
-
-            Option<LegalizationRequestDbModel> legalizationDbModelOption = await _legalizationRequestRepo.GetById(legalizationId);
-
-            State.IsTrue(legalizationDbModelOption.HasValue, "Esta legalización no está registrada en el sistema");
-            State.IsTrue(legalizationDbModelOption.ValueOrFailure().Status == LegalizationStatus.Pending, "La solicitud debe estar pendiente para ser rechazada");
-
-            await _legalizationRequestRepo.UpdateStatus(comment, LegalizationStatus.Deny, legalizationDbModelOption.ValueOrFailure().Id);
-
-            LegalizationRequestDbModel legalizationDbModel = legalizationDbModelOption.ValueOrFailure()!;
-            LegalizationDetails details = _mapper.Map<LegalizationDetails>(legalizationDbModel);
-
-            await _smtpService.SendMail(details, LegalizationStatus.Deny);
-        }
-
-        async Task ILegalizationRequestService.MarkAsPaid(Guid legalizationId)
-        {
-            Arguments.NotEmpty(legalizationId, nameof(legalizationId));
-
-            Option<LegalizationRequestDbModel> legalizationDbModelOption = await _legalizationRequestRepo.GetById(legalizationId);
-
-            State.IsTrue(legalizationDbModelOption.HasValue, "Esta legalización no está registrada en el sistema");
-            State.IsTrue(legalizationDbModelOption.ValueOrFailure().Status == LegalizationStatus.Approved, "La solicitud debe estar aprobada para ser marcada como pagada");
-
-            await _legalizationRequestRepo.UpdateStatus(LegalizationStatus.Paid, legalizationDbModelOption.ValueOrFailure().Id);
 
             PdfLoadOptions loadOptions = new PdfLoadOptions();
             using (Watermarker watermarker = new Watermarker(legalizationDbModelOption.ValueOrFailure().DocumentPath, loadOptions))
@@ -151,7 +137,65 @@ namespace Core.Services
             LegalizationRequestDbModel legalizationDbModel = legalizationDbModelOption.ValueOrFailure()!;
             LegalizationDetails details = _mapper.Map<LegalizationDetails>(legalizationDbModel);
 
-            await _smtpService.SendMail(details, LegalizationStatus.Paid);
+            try
+            {
+                await _smtpService.SendMail(details, LegalizationStatus.Approved);
+            }
+            catch (Exception)
+            {
+
+            }
+            
+
+        }
+
+        async Task ILegalizationRequestService.Deny(string comment, Guid legalizationId)
+        {
+            Arguments.NotEmpty(legalizationId, nameof(legalizationId));
+
+            Option<LegalizationRequestDbModel> legalizationDbModelOption = await _legalizationRequestRepo.GetById(legalizationId);
+
+            State.IsTrue(legalizationDbModelOption.HasValue, "Esta legalización no está registrada en el sistema");
+            //State.IsTrue(legalizationDbModelOption.ValueOrFailure().Status == LegalizationStatus.Pending, "La solicitud debe estar pendiente para ser rechazada");
+
+            await _legalizationRequestRepo.UpdateStatus(comment, LegalizationStatus.Deny, legalizationDbModelOption.ValueOrFailure().Id);
+
+            LegalizationRequestDbModel legalizationDbModel = legalizationDbModelOption.ValueOrFailure()!;
+            LegalizationDetails details = _mapper.Map<LegalizationDetails>(legalizationDbModel);
+
+            try
+            {
+                await _smtpService.SendMail(details, LegalizationStatus.Deny);
+            }
+            catch (Exception)
+            {
+
+            }
+            
+        }
+
+        async Task ILegalizationRequestService.MarkAsPaid(Guid legalizationId)
+        {
+            Arguments.NotEmpty(legalizationId, nameof(legalizationId));
+
+            Option<LegalizationRequestDbModel> legalizationDbModelOption = await _legalizationRequestRepo.GetById(legalizationId);
+
+            State.IsTrue(legalizationDbModelOption.HasValue, "Esta legalización no está registrada en el sistema");
+
+            await _legalizationRequestRepo.UpdateStatus(LegalizationStatus.Paid, legalizationDbModelOption.ValueOrFailure().Id);
+
+            LegalizationRequestDbModel legalizationDbModel = legalizationDbModelOption.ValueOrFailure()!;
+            LegalizationDetails details = _mapper.Map<LegalizationDetails>(legalizationDbModel);
+
+            try
+            {
+                await _smtpService.SendMail(details, LegalizationStatus.Paid);
+            }
+            catch (Exception)
+            {
+
+            }
+            
         }
 
         async Task<DashboardData> ILegalizationRequestService.GetDashboardData()

@@ -51,8 +51,6 @@ namespace Shared.Helpers
 
             var subject = "Notificación de Cambio de Estatus de Legalización";
 
-            //smtpClient.Send(_smtpServiceSettings.Username, legalizationDetails?.User?.Email, subject, message);
-
             var mailMessage = new MailMessage
             {
                 From = new MailAddress(username),

@@ -53,7 +53,7 @@ namespace DigitalDocumentAPI.Controllers
 
             await _legalizationRequestService.Create(legalizationCreation);
 
-            return Ok();
+            return Ok(legalizationCreation.Id);
         }
 
         [HttpPatch("approve")]
