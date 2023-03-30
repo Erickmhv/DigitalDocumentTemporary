@@ -13,6 +13,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Utils", "Utils\Utils.csproj
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DigitalDocumentAPI", "DigitalDocumentAPI\DigitalDocumentAPI.csproj", "{1C660F31-BA00-4009-A450-867695776F49}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Exposed_API", "Exposed_API\Exposed_API.csproj", "{D588C721-473F-42D1-9C80-79033FA854D2}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -39,6 +41,10 @@ Global
 		{1C660F31-BA00-4009-A450-867695776F49}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1C660F31-BA00-4009-A450-867695776F49}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1C660F31-BA00-4009-A450-867695776F49}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D588C721-473F-42D1-9C80-79033FA854D2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D588C721-473F-42D1-9C80-79033FA854D2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D588C721-473F-42D1-9C80-79033FA854D2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D588C721-473F-42D1-9C80-79033FA854D2}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

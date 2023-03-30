@@ -5,7 +5,7 @@ namespace Core.Services.Interfaces
 {
     public interface ILegalizationRequestService
     {
-        Task <Guid>Create(LegalizationCreation legalization);
+        Task <Guid>Create(LegalizationCreation legalization, bool isExposed);
         Task<IEnumerable<LegalizationQuickView>> GetAll(LegalizationStatus status);
         Task<LegalizationDetails> GetById(Guid legalization);
         Task<IEnumerable<LegalizationQuickView>> GetByUserId(Guid userId);

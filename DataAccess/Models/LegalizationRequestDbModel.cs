@@ -25,6 +25,8 @@ namespace DataAccess.Models
 
         public LegalizationStatus Status { get; set; }
 
+        public bool IsByExposed { get; set; }
+
         public AcademicInstitutionDbModel AcademicInstitution { get; set; } = Option.None<AcademicInstitutionDbModel>().ValueOrDefault();
 
         public DocumentTypeDbModel DocumentType { get; set; } = Option.None<DocumentTypeDbModel>().ValueOrDefault();

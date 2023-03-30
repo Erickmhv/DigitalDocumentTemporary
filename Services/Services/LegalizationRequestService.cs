@@ -12,9 +12,7 @@ using Shared.Enums;
 using Shared.Interfaces;
 using Shared.ViewModels;
 using Shared.ViewModels.Legalization;
-using Shared.ViewModels.PasswordChange;
-using Shared.ViewModels.User;
-using System.Text.RegularExpressions;
+using System.Net.Http.Json;
 using Triplex.Validations;
 
 namespace Core.Services
@@ -29,7 +27,7 @@ namespace Core.Services
         private const string _documentName = "Document.pdf";
         private const string _documentMarkedName = "DocumentMarked.pdf";
 
-        public LegalizationRequestService(ILegalizationRequestRepository legalizationRequestRepository,IUserService userService, IMapper mapper, IFileService fileService, ISMTPService smtpService)
+        public LegalizationRequestService(ILegalizationRequestRepository legalizationRequestRepository, IUserService userService, IMapper mapper, IFileService fileService, ISMTPService smtpService)
         {
             _legalizationRequestRepo = legalizationRequestRepository;
             _userService = userService;
@@ -38,7 +36,7 @@ namespace Core.Services
             _smtpService = smtpService;
         }
 
-        async Task<Guid> ILegalizationRequestService.Create(LegalizationCreation legalization)
+        async Task<Guid> ILegalizationRequestService.Create(LegalizationCreation legalization, bool IsByExposed)
         {
             Arguments.NotNull(legalization, nameof(legalization));
 
@@ -48,6 +46,7 @@ namespace Core.Services
             legalization.DocumentPath = documentPath;
 
             LegalizationRequestDbModel legalizationDbModel = _mapper.Map<LegalizationRequestDbModel>(legalization);
+            legalizationDbModel.IsByExposed = IsByExposed;
             await _legalizationRequestRepo.Create(legalizationDbModel);
 
             LegalizationDetails details = _mapper.Map<LegalizationDetails>(legalizationDbModel);
@@ -139,13 +138,17 @@ namespace Core.Services
 
             try
             {
+                if (legalizationDbModel.IsByExposed)
+                {
+                    await SendDocument(legalizationDbModel);
+                }
                 await _smtpService.SendMail(details, LegalizationStatus.Approved);
             }
             catch (Exception)
             {
 
             }
-            
+
 
         }
 
@@ -171,7 +174,7 @@ namespace Core.Services
             {
 
             }
-            
+
         }
 
         async Task ILegalizationRequestService.MarkAsPaid(Guid legalizationId)
@@ -195,7 +198,7 @@ namespace Core.Services
             {
 
             }
-            
+
         }
 
         async Task<DashboardData> ILegalizationRequestService.GetDashboardData()
@@ -210,6 +213,24 @@ namespace Core.Services
             DashboardData dashboardData = await _legalizationRequestRepo.GetByUserDashboardData(userId);
 
             return dashboardData;
+        }
+
+        private async Task SendDocument(LegalizationRequestDbModel legalizationRequest)
+        {
+            using (var httpClient = new HttpClient())
+            {
+                string documentPath = legalizationRequest.DocumentPath.Replace(_documentName, _documentMarkedName);
+                string fileBase64 = await _fileService.GetImageBase64StringAsync(documentPath);
+                object requestBody = new
+                {
+                    ID_Solicitud = legalizationRequest.Id,
+                    Base64 = fileBase64,
+                    Estado = 1,
+                    Comentario = string.Empty
+                };
+
+                await httpClient.PostAsJsonAsync("https://f5b14382-c948-4afd-9a43-4a23f684e5f2.mock.pstmn.io/Invoice-no-errors", requestBody);
+            }
         }
     }
 }

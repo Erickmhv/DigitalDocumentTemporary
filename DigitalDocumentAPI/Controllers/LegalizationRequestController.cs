@@ -51,7 +51,7 @@ namespace DigitalDocumentAPI.Controllers
         {
             Arguments.NotNull(legalizationCreation, nameof(legalizationCreation));
 
-            await _legalizationRequestService.Create(legalizationCreation);
+            await _legalizationRequestService.Create(legalizationCreation, false);
 
             return Ok(legalizationCreation.Id);
         }
