@@ -226,10 +226,10 @@ namespace Core.Services
                     ID_Solicitud = legalizationRequest.Id,
                     Base64 = fileBase64,
                     Estado = 1,
-                    Comentario = string.Empty
+                    Comentario = "Aprobada"
                 };
 
-                await httpClient.PostAsJsonAsync("https://f5b14382-c948-4afd-9a43-4a23f684e5f2.mock.pstmn.io/Invoice-no-errors", requestBody);
+                await httpClient.PostAsJsonAsync("http://www.softuniapi.somee.com/api/LegalizacionDocumentos", requestBody);
             }
         }
     }

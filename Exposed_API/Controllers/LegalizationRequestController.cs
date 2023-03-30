@@ -34,7 +34,7 @@ namespace Exposed_API.Controllers
 
             await _legalizationRequestService.Create(legalizationCreation, true);
 
-            return Ok(legalizationCreation.Id);
+            return Ok(new { Id = legalizationCreation.Id, Estatus = true });
         }
     }
 }
