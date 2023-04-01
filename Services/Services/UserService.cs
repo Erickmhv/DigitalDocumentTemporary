@@ -133,5 +133,14 @@ namespace Core.Services
 
             return _mapper.Map<User>(userDbModel);
         }
+
+        public async Task<User> GetByEmail(string studentEmail)
+        {
+            Arguments.NotNullOrEmpty(studentEmail, nameof(studentEmail));
+
+            UserDbModel userDbModel = (await _userRepo.GetByEmail(studentEmail)).ValueOrFailure("Este usuario no existe.")!;
+
+            return _mapper.Map<User>(userDbModel);
+        }
     }
 }

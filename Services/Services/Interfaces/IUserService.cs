@@ -9,6 +9,7 @@ namespace Core.Services.Interfaces
         Task Create(User user);
         Task Update(User user);
         Task<User> GetById(Guid userId);
+        Task<User> GetByEmail(string studentEmail);
         Task<User> Login(User user);
         Task<Guid> CreateChangeRequest(string userEmail);
         Task ValidateChangeRequest(Guid changeRequestId);

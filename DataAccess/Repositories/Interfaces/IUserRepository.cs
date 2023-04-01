@@ -6,7 +6,7 @@ namespace DataAccess.Repositories.Interfaces
 {
     public interface IUserRepository
     {
-        Task Create(UserDbModel user);
+        Task<Option<UserDbModel?>> Create(UserDbModel user);
         Task Update(UserDbModel user);
         Task<bool> ValidateIfExsits(string identification, IdentificationType identificationType, string email, Guid id);
         Task<Option<UserDbModel?>> Login(UserDbModel user);

@@ -17,12 +17,17 @@ namespace DataAccess.Repositories
             _context = context;
         }
 
-        async Task IUserRepository.Create(UserDbModel userDbModel)
+        async Task<Option<UserDbModel?>> IUserRepository.Create(UserDbModel userDbModel)
         {
             userDbModel.Id = Guid.NewGuid();
 
             await _context.Users.AddAsync(userDbModel);
             await _context.SaveChangesAsync();
+
+            Option<UserDbModel?> user = (await _context.Users.AsNoTracking().FirstOrDefaultAsync(user =>
+                                               user.Id == userDbModel.Id)).SomeNotNull();
+
+            return user;
         }
 
         async Task<bool> IUserRepository.ValidateIfExsits(string identification, IdentificationType identificationType, string email, Guid id)

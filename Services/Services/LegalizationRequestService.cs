@@ -45,13 +45,52 @@ namespace Core.Services
             string documentPath = await _fileService.SaveFileAsync(legalization.Base64Document, _documentName, legalization.Id);
             legalization.DocumentPath = documentPath;
 
+            User? user = null;
+
+            try
+            {
+                user = await _userService.GetByEmail(legalization.StudentEmail);
+                legalization.UserId = user.Id;
+            }
+            catch (Exception)
+            {
+
+            }
+
+            if (user == null)
+                try
+                {
+                    User usuario = new User()
+                    {
+                        Id = legalization.UserId,
+                        Name = legalization.StudentName,
+                        Lastname = legalization.StudentLastName,
+                        Phone = legalization.StudentPhone,
+                        Email = legalization.StudentEmail,
+                        Identification = legalization.StudentIdentification,
+                        IdentificationType = legalization.StudentIdentificationType,
+                        RoleId = Guid.Parse("B6C977E9-09DA-4454-94B1-58C22A7DA7AB"),
+                    };
+                    await _userService.Create(usuario);
+
+                    user = await _userService.GetByEmail(legalization.StudentEmail);
+                    legalization.UserId = user.Id;
+
+                }
+                catch (Exception)
+                {
+
+                }
+
             LegalizationRequestDbModel legalizationDbModel = _mapper.Map<LegalizationRequestDbModel>(legalization);
             legalizationDbModel.IsByExposed = IsByExposed;
             await _legalizationRequestRepo.Create(legalizationDbModel);
 
             LegalizationDetails details = _mapper.Map<LegalizationDetails>(legalizationDbModel);
 
-            User user = await _userService.GetById(legalization.UserId);
+
+            user = await _userService.GetById(legalization.UserId);
+
             UserInformation userInfo = _mapper.Map<UserInformation>(user);
 
             details.User = userInfo;
