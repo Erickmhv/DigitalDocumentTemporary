@@ -40,6 +40,7 @@ namespace Core.Services
         {
             Arguments.NotNull(legalization, nameof(legalization));
 
+            if(legalization.Id == Guid.Empty || legalization.Id == Guid.Parse("3fa85f64-5717-4562-b3fc-2c963f66afa6"))
             legalization.Id = Guid.NewGuid();
 
             string documentPath = await _fileService.SaveFileAsync(legalization.Base64Document, _documentName, legalization.Id);
