@@ -52,6 +52,19 @@ namespace DataAccess.Repositories
             return legalizationRequestDbModels;
         }
 
+        async Task<Option<LegalizationRequestDbModel>> ILegalizationRequestRepository.GetById(int id)
+        {
+
+            Option<LegalizationRequestDbModel> legalizationRequestDbModels = (await _context.LegalizationRequests.AsNoTracking()
+                                                                                                .Include(legalizationRequest => legalizationRequest.Career)
+                                                                                                .Include(legalizationRequest => legalizationRequest.AcademicInstitution)
+                                                                                                .Include(legalizationRequest => legalizationRequest.User)
+                                                                                                .Include(legalizationRequest => legalizationRequest.DocumentType)
+                                                                                                .FirstOrDefaultAsync(legalization => legalization.ExternalId == id)).SomeNotNull()!;
+
+            return legalizationRequestDbModels;
+        }
+
         async Task<IEnumerable<LegalizationRequestDbModel>> ILegalizationRequestRepository.GetByUserId(Guid userId)
         {
             Arguments.NotEmpty(userId, nameof(userId));

@@ -9,6 +9,8 @@ namespace Shared.ViewModels.Legalization
     {
         public Guid Id { get; set; }
 
+        public int ExternalId { get; set; }
+
         public decimal Amount { get; set; }
 
         public DateTime CreationDate { get; set; } = DateTime.Now;

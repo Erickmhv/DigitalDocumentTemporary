@@ -8,6 +8,7 @@ namespace Core.Services.Interfaces
         Task <Guid>Create(LegalizationCreation legalization, bool isExposed);
         Task<IEnumerable<LegalizationQuickView>> GetAll(LegalizationStatus status);
         Task<LegalizationDetails> GetById(Guid legalization);
+        Task<LegalizationDetails> GetById(int legalization);
         Task<IEnumerable<LegalizationQuickView>> GetByUserId(Guid userId);
         Task Approve(Guid legalizationId);
         Task Deny(string comment,Guid legalizationId);

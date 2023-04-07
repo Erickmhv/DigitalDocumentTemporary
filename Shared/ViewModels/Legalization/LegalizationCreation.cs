@@ -9,6 +9,7 @@ namespace Shared.ViewModels.Legalization
     public class LegalizationCreation
     {
         public Guid Id { get; set; }
+        public int ExternalId { get; set; }
 
         public Guid AcademicInstitutionId { get; set; }
 

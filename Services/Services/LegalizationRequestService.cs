@@ -137,6 +137,25 @@ namespace Core.Services
             return details;
         }
 
+        async Task<LegalizationDetails> ILegalizationRequestService.GetById(int legalizationId)
+        {           
+
+            Option<LegalizationRequestDbModel> legalizationDbModelOption = await _legalizationRequestRepo.GetById(legalizationId);
+
+            State.IsTrue(legalizationDbModelOption.HasValue, "Esta legalización no está registrada en el sistema");
+
+            LegalizationRequestDbModel legalizationDbModel = legalizationDbModelOption.ValueOrFailure()!;
+
+            legalizationDbModel.DocumentPath = legalizationDbModel.Status == LegalizationStatus.Approved ? legalizationDbModelOption.ValueOrFailure().DocumentPath.Replace(_documentName, _documentMarkedName) : legalizationDbModelOption.ValueOrFailure().DocumentPath;
+
+            string fileBase64 = await _fileService.GetImageBase64StringAsync(legalizationDbModel.DocumentPath);
+
+            LegalizationDetails details = _mapper.Map<LegalizationDetails>(legalizationDbModel);
+            details.Base64String = fileBase64;
+
+            return details;
+        }
+
         async Task<IEnumerable<LegalizationQuickView>> ILegalizationRequestService.GetByUserId(Guid userId)
         {
             Arguments.NotEmpty(userId, nameof(userId));

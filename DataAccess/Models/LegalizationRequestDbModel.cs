@@ -8,6 +8,8 @@ namespace DataAccess.Models
     {
         public Guid Id { get; set; }
 
+        public int ExternalId { get; set; }
+
         public Guid AcademicInstitutionId { get; set; }
 
         public Guid DocumentTypeId { get; set; }
