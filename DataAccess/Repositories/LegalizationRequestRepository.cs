@@ -2,6 +2,7 @@ using DataAccess.Models;
 using DataAccess.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Optional;
+using Optional.Unsafe;
 using Shared.Enums;
 using Shared.ViewModels.Legalization;
 using Triplex.Validations;
@@ -24,7 +25,6 @@ namespace DataAccess.Repositories
             await _context.LegalizationRequests.AddAsync(legalizationDbModel);
             await _context.SaveChangesAsync();
         }
-
         async Task<IEnumerable<LegalizationRequestDbModel>> ILegalizationRequestRepository.GetAll(LegalizationStatus status)
         {
             IEnumerable<LegalizationRequestDbModel> legalizationRequestDbModels = await _context.LegalizationRequests.AsNoTracking()

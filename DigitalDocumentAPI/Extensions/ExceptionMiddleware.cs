@@ -42,7 +42,7 @@ namespace DigitalDocumentAPI.Extensions
                         _ => (500, DefaultErrorMessage)
                     };
 
-                    await BuildResponse(context, statusCode, message).ConfigureAwait(false);
+                    await BuildResponse(context, statusCode, message + contextFeature.Error?.InnerException ?? "").ConfigureAwait(false);
                 });
             });
         }

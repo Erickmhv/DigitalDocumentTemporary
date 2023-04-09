@@ -85,6 +85,13 @@ namespace Core.Services
 
             LegalizationRequestDbModel legalizationDbModel = _mapper.Map<LegalizationRequestDbModel>(legalization);
             legalizationDbModel.IsByExposed = IsByExposed;
+
+            if (legalizationDbModel.IsByExposed)
+            {
+                State.IsFalse(_legalizationRequestRepo.GetById(legalization.ExternalId).Result.HasValue, "Ya existe una solicitud con este ExternalID");
+            }
+
+
             await _legalizationRequestRepo.Create(legalizationDbModel);
 
             LegalizationDetails details = _mapper.Map<LegalizationDetails>(legalizationDbModel);
@@ -288,7 +295,7 @@ namespace Core.Services
                     Comentario = "Aprobada"
                 };
 
-                await httpClient.PostAsJsonAsync("http://www.softuniapi.somee.com/api/LegalizacionDocumentos", requestBody);
+                await httpClient.PutAsJsonAsync("http://www.softuniapi.somee.com/api/LegalizacionDocumentos", requestBody);
             }
         }
     }

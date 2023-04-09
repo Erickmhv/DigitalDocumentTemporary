@@ -8,6 +8,8 @@ namespace Shared.ViewModels.Legalization
     public class LegalizationQuickView
     {
         public Guid Id { get; set; }
+        public int ExternalId { get; set; }
+
 
         public decimal Amount { get; set; }
 

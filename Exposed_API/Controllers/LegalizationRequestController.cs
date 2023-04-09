@@ -27,6 +27,15 @@ namespace Exposed_API.Controllers
             return Ok(legalization);
         }
 
+        [HttpGet("get-all")]
+        public async Task<IActionResult> GetAll([FromQuery] LegalizationStatus status)
+        {
+            IEnumerable<LegalizationQuickView> legalizations = await _legalizationRequestService.GetAll(status);
+
+            return Ok(legalizations);
+        }
+
+
         [HttpPost]
         public async Task<IActionResult> Create([FromBody]LegalizationCreation legalizationCreation)
         {
