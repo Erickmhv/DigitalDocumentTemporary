@@ -289,13 +289,14 @@ namespace Core.Services
                 string fileBase64 = await _fileService.GetImageBase64StringAsync(documentPath);
                 object requestBody = new
                 {
-                    ID_Solicitud = legalizationRequest.Id,
+                    ID_Solicitud = legalizationRequest.ExternalId,
                     Base64 = fileBase64,
                     Estado = 1,
                     Comentario = "Aprobada"
                 };
 
                 await httpClient.PutAsJsonAsync("http://www.softuniapi.somee.com/api/LegalizacionDocumentos", requestBody);
+                
             }
         }
     }
