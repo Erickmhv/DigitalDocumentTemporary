@@ -206,7 +206,7 @@ namespace Core.Services
             {
                 if (legalizationDbModel.IsByExposed)
                 {
-                    await SendDocument(legalizationDbModel);
+                    await SendDocument(legalizationDbModel,1);
                 }
                 await _smtpService.SendMail(details, LegalizationStatus.Approved);
             }
@@ -234,6 +234,10 @@ namespace Core.Services
 
             try
             {
+                if (legalizationDbModel.IsByExposed)
+                {
+                    await SendDocument(legalizationDbModel, 0);
+                }
                 await _smtpService.SendMail(details, LegalizationStatus.Deny);
             }
             catch (Exception)
@@ -281,7 +285,7 @@ namespace Core.Services
             return dashboardData;
         }
 
-        private async Task SendDocument(LegalizationRequestDbModel legalizationRequest)
+        private async Task SendDocument(LegalizationRequestDbModel legalizationRequest, int estado)
         {
             using (var httpClient = new HttpClient())
             {
@@ -291,8 +295,8 @@ namespace Core.Services
                 {
                     ID_Solicitud = legalizationRequest.ExternalId,
                     Base64 = fileBase64,
-                    Estado = 1,
-                    Comentario = "Aprobada"
+                    Estado = estado,
+                    Comentario = legalizationRequest.Comment ?? "Aprobada"
                 };
 
                 await httpClient.PutAsJsonAsync("http://www.softuniapi.somee.com/api/LegalizacionDocumentos", requestBody);
